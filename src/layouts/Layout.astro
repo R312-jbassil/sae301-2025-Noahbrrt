@@ -1,22 +1,80 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+---
+const { title = "TaVue – Lunettes sur mesure", description = "" } = Astro.props;
+import "../style/global.css";
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+import logoUrl from "/src/assets/TaVue.svg";
+import basketUrl from "/src/assets/basket.svg";
+import igUrl from "/src/assets/instagram.svg";
+import fbUrl from "/src/assets/facebook.svg";
+import twUrl from "/src/assets/twitter.svg";
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+  </head>
+  <body class="bg-white text-gray-900 antialiased">
+    <header class="sticky top-0 z-50 bg-white shadow-sm backdrop-blur-md">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+    <a href="/" class="flex items-center gap-2">
+      <img src={logoUrl.src} alt="TaVue" class="h-12 w-auto brightness-0" />
+    </a>
+
+    <ul class="hidden items-center gap-10 md:flex">
+      <li>
+        <a href="/configurateur"
+           class="text-[15px] font-medium text-gray-900 hover:text-black transition">
+          Personnalisation
+        </a>
+      </li>
+      <li>
+        <a href="/galerie"
+           class="text-[15px] font-medium text-gray-600 hover:text-black transition">
+          Galerie
+        </a>
+      </li>
+    </ul>
+
+    <div class="flex items-center gap-2">
+      <a href="/configurateur"
+         class="rounded-md border border-gray-400 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-100 hover:text-black transition">
+        Connexion
+      </a>
+      <a href="/configurateur"
+         class="rounded-md bg-black px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-900 transition">
+        S’inscrire
+      </a>
+      <a href="/configurateur"
+         class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-gray-100 transition">
+        <img src={basketUrl.src} alt="Panier" class="h-5 w-5 brightness-0" />
+      </a>
+    </div>
+  </nav>
+</header>
+
+
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="mt-20 bg-black text-gray-300">
+      <div class="mx-auto grid max-w-6xl grid-cols-1 items-center gap-4 px-4 py-10 md:grid-cols-3">
+        <ul class="flex gap-6 text-sm">
+          <li><a href="#" class="hover:text-white">Mentions légales</a></li>
+          <li><a href="#" class="hover:text-white">Contact</a></li>
+          <li><a href="#" class="hover:text-white">CGV</a></li>
+        </ul>
+        <p class="text-center text-sm">© 2025 TaVue — Lunettes sur mesure, fabriquées en France</p>
+        <div class="flex justify-end gap-4">
+          <a href="#" aria-label="Instagram" class="hover:opacity-80"><img src={igUrl.src} alt="" class="h-5 w-5" /></a>
+          <a href="#" aria-label="Facebook" class="hover:opacity-80"><img src={fbUrl.src} alt="" class="h-5 w-5" /></a>
+          <a href="#" aria-label="Twitter" class="hover:opacity-80"><img src={twUrl.src} alt="" class="h-5 w-5" /></a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,11 +1,193 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from "../layouts/Layout.astro";
+import hero from "../assets/hero.webp";
+import img_home from "../assets/img_home.webp";
+import placeholderGlasses from "/src/assets/astro.svg"; // remplace par tes visuels de modèles
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="TaVue — Créez vos lunettes sur mesure">
+<section class="relative w-full overflow-hidden">
+  <img src={hero.src} alt="Image principale"
+    class="h-[600px] w-full object-cover md:h-[700px]" />
+
+    <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-white">
+      <span class="mb-4 inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium ring-1 ring-white/20">
+        Fabrication 100% française
+      </span>
+
+      <h1 class="max-w-2xl text-balance text-3xl font-semibold sm:text-4xl">
+        Créez les lunettes qui vous ressemblent.
+      </h1>
+      <p class="mt-3 max-w-2xl text-pretty text-sm text-gray-200">
+        Un design sobre, une fabrication française, une création à votre image.
+      </p>
+
+      <div class="pointer-events-auto mt-6">
+        <a href="/configurateur"
+           class="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-black shadow-sm hover:bg-gray-100">
+          Commencer la personnalisation
+          <span aria-hidden="true">➜</span>
+        </a>
+      </div>
+
+      <div class="pointer-events-none absolute bottom-8 left-1/2 hidden -translate-x-1/2 items-center gap-16 text-xs text-gray-200 sm:flex">
+        <div class="text-center">
+          <div class="font-semibold">+ de 10 000</div>
+          <div class="text-gray-300">paires créées</div>
+        </div>
+        <div class="text-center">
+          <div class="font-semibold">4,9/5</div>
+          <div class="text-gray-300">satisfaction client</div>
+        </div>
+        <div class="text-center">
+          <div class="font-semibold">2–3 semaines</div>
+          <div class="text-gray-300">délai de fabrication</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mt-14 max-w-2xl text-center">
+      <h2 class="text-xl font-semibold">Une expérience unique</h2>
+      <p class="mt-2 text-sm text-gray-600">
+        Concevez votre paire de lunettes idéale grâce à notre configurateur innovant
+      </p>
+    </div>
+
+    <div class="mt-8 grid gap-6 sm:grid-cols-3">
+      <div class="rounded-2xl border border-gray-200 p-6">
+        <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full border">👓</div>
+        <h3 class="text-sm font-semibold">Vision sur mesure</h3>
+        <p class="mt-1 text-sm text-gray-600">Verres taillés selon votre prescription pour un confort optimal.</p>
+      </div>
+      <div class="rounded-2xl border border-gray-200 p-6">
+        <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full border">🎨</div>
+        <h3 class="text-sm font-semibold">Personnalisation totale</h3>
+        <p class="mt-1 text-sm text-gray-600">Forme, couleur, matériau, dimensions : choisissez chaque détail.</p>
+      </div>
+      <div class="rounded-2xl border border-gray-200 p-6">
+        <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full border">✨</div>
+        <h3 class="text-sm font-semibold">Finitions premium</h3>
+        <p class="mt-1 text-sm text-gray-600">Anti-reflet, anti-rayures et protection UV inclus.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mt-14 max-w-2xl text-center">
+      <h2 class="text-xl font-semibold">Nos modèles populaires</h2>
+      <p class="mt-2 text-sm text-gray-600">Explorez quelques créations qui ont séduit nos clients</p>
+    </div>
+
+    <div class="mt-8 grid gap-6 md:grid-cols-3">
+      {[
+        { name: "Modèle Classique", price: "189€", mat: "Acétate" },
+        { name: "Modèle Aviateur", price: "219€", mat: "Métal" },
+        { name: "Modèle Œil de chat", price: "199€", mat: "Acétate" },
+      ].map((m) => (
+        <article class="rounded-2xl border border-gray-200 p-5">
+          <div class="mb-4 overflow-hidden rounded-xl bg-[url('/checker.png')]">
+            <img src={placeholderGlasses.src} alt="" class="mx-auto h-36 w-auto opacity-80" />
+          </div>
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 class="text-sm font-semibold">{m.name}</h3>
+              <p class="mt-1 text-xs text-gray-500">{m.mat}</p>
+            </div>
+            <div class="text-sm font-semibold">{m.price}</div>
+          </div>
+          <a href="/configurateur"
+             class="mt-4 inline-flex w-full items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">
+            Personnaliser ce modèle
+          </a>
+        </article>
+      ))}
+    </div>
+
+    <div class="mt-8 text-center">
+      <a href="/configurateur"
+         class="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-900">
+        Voir toutes les créations
+        <span aria-hidden="true">➜</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="mt-16 bg-gray-50 py-12">
+    <div class="mx-auto max-w-6xl px-4 text-center">
+      <h2 class="text-xl font-semibold">Comment ça marche ?</h2>
+      <p class="mt-2 text-sm text-gray-600">Créez vos lunettes sur mesure en 3 étapes simples</p>
+
+      <div class="mt-10 grid gap-8 sm:grid-cols-3">
+        {[
+          { n: "1", title: "Personnalisez", text: "Choisissez la forme, les matériaux, les couleurs et toutes les dimensions de votre monture" },
+          { n: "2", title: "Validez", text: "Visualisez en temps réel et ajoutez votre prescription optique" },
+          { n: "3", title: "Recevez", text: "Fabrication dans nos ateliers et livraison sous 2 à 3 semaines" },
+        ].map((s) => (
+          <div class="mx-auto max-w-sm">
+            <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-sm font-semibold">{s.n}</div>
+            <h3 class="text-sm font-semibold">{s.title}</h3>
+            <p class="mt-1 text-sm text-gray-600">{s.text}</p>
+          </div>
+        ))}
+      </div>
+
+      <a href="/configurateur"
+         class="mt-8 inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+        Démarrer ma création
+        <span aria-hidden="true">➜</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4">
+    <div class="mt-16 grid items-center gap-10 md:grid-cols-2">
+      <div>
+        <h3 class="text-sm font-medium text-gray-700">L’artisanat français au service de votre style</h3>
+        <p class="mt-3 text-sm text-gray-700">
+          Nos artisans lunetiers du Jura perpétuent un savoir-faire traditionnel depuis plus de 150 ans.
+          Chaque paire est assemblée à la main avec une attention méticuleuse aux détails.
+        </p>
+        <p class="mt-3 text-sm text-gray-700">
+          Matériaux nobles, contrôles qualité rigoureux et finitions soignées pour des lunettes qui vous accompagneront durablement.
+        </p>
+
+        <a href="/configurateur"
+           class="mt-6 inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-900">
+          Découvrir le configurateur
+          <span aria-hidden="true">➜</span>
+        </a>
+      </div>
+
+      <div class="relative">
+        <img src={img_home.src} alt="" class="w-full rounded-2xl object-cover shadow-sm" />
+        <div class="absolute -bottom-4 left-6 rounded-xl bg-white px-4 py-3 shadow-lg">
+          <div class="text-xs font-semibold">Depuis 1870</div>
+          <div class="text-xs text-gray-600">Savoir-faire français</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mt-16 max-w-2xl text-center">
+      <h2 class="text-xl font-semibold">Ils ont créé leurs lunettes</h2>
+      <p class="mt-2 text-sm text-gray-600">Découvrez les retours de nos clients satisfaits</p>
+    </div>
+
+    <div class="mt-8 grid gap-6 md:grid-cols-3">
+      {[
+        { a: "Sophie M.", t: "Des lunettes parfaites qui correspondent exactement à ce que je voulais. La qualité est exceptionnelle." },
+        { a: "Marc D.", t: "Le configurateur est très intuitif ! J’ai pu créer mes lunettes idéales en quelques minutes." },
+        { a: "Julie L.", t: "Fabrication française, design sobre et élégant. Je recommande sans hésitation !" },
+      ].map((item) => (
+        <figure class="rounded-2xl border border-gray-200 p-6">
+          <div class="mb-2 text-black">★★★★★</div>
+          <blockquote class="text-sm italic text-gray-700">“{item.t}”</blockquote>
+          <figcaption class="mt-4 text-sm text-gray-700">— {item.a}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </section>
 </Layout>

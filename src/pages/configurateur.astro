@@ -1,0 +1,289 @@
+---
+import Layout from "../layouts/Layout.astro";
+import glassesSvg from "../assets/lunettes.svg?raw";
+---
+
+<Layout title="Configurateur — TaVue">
+  <section class="mx-auto max-w-6xl px-4 py-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-semibold">Personnalisez vos lunettes</h1>
+        <p class="mt-1 text-sm text-gray-600">Créez votre paire unique en quelques clics</p>
+      </div>
+      <div class="text-right">
+        <div class="text-lg font-semibold">149€</div>
+        <div class="text-xs text-gray-500">Prix estimé</div>
+      </div>
+    </div>
+
+    <div class="mt-3 h-1 w-full rounded bg-gray-200">
+      <div class="h-1 w-1/2 rounded bg-black"></div>
+    </div>
+
+    <div class="mt-6 grid gap-6 md:grid-cols-[1fr_1fr]">
+      <div class="space-y-4">
+        <div class="rounded-2xl border border-gray-200 p-3">
+          <div class="mb-2">
+            <span class="inline-flex items-center rounded-full bg-black/80 px-2 py-0.5 text-[11px] font-medium text-white">
+              Aperçu en temps réel
+            </span>
+          </div>
+
+          <div class="flex items-center justify-center rounded-xl bg-gray-50 p-4">
+            <div id="svg-mount" class="w-full max-w-[460px]" set:html={glassesSvg}></div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 p-4">
+          <h3 class="text-sm font-semibold">Récapitulatif</h3>
+          <div class="mt-3 space-y-2 text-sm">
+            <div class="flex items-center justify-between">
+              <span>Monture</span><span id="recap-monture" class="inline-block h-3 w-10 rounded"></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Branches</span><span id="recap-branches" class="inline-block h-3 w-10 rounded"></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Verres</span><span id="recap-verres" class="inline-block h-3 w-10 rounded"></span>
+            </div>
+            <div class="flex items-center justify-between pt-2">
+              <span class="font-medium">Prix</span><span class="font-semibold">149€</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <button type="button" class="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-900">
+            Ajouter au panier · 149€
+          </button>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" id="btn-save" class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
+              Sauvegarder
+            </button>
+            <button type="button" id="btn-reset" class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
+              Réinitialiser
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <article class="rounded-2xl border border-gray-200 p-4">
+          <div class="mb-2 flex items-center gap-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-full border text-sm">1</span>
+            <h3 class="text-base font-semibold">Couleur de monture</h3>
+          </div>
+          <p class="mb-3 text-xs text-gray-600">Sélectionnez la teinte qui vous plaît</p>
+          <div class="grid grid-cols-4 gap-3">
+            <button type="button" data-target="monture" data-color="#111111" class="color-btn h-10 rounded-full border" style="background:#111111"></button>
+            <button type="button" data-target="monture" data-color="#904A39" class="color-btn h-10 rounded-full border" style="background:#904A39"></button>
+            <button type="button" data-target="monture" data-color="#737373" class="color-btn h-10 rounded-full border" style="background:#737373"></button>
+            <button type="button" data-target="monture" data-color="#FFFFFF" class="color-btn h-10 rounded-full border" style="background:#FFFFFF"></button>
+          </div>
+        </article>
+
+        <article class="rounded-2xl border border-gray-200 p-4">
+          <div class="mb-2 flex items-center gap-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-full border text-sm">2</span>
+            <h3 class="text-base font-semibold">Couleur des branches</h3>
+          </div>
+          <p class="mb-3 text-xs text-gray-600">Sélectionnez la teinte qui vous plaît</p>
+          <div class="grid grid-cols-4 gap-3">
+            <button type="button" data-target="branches" data-color="#111111" class="color-btn h-10 rounded-full border" style="background:#111111"></button>
+            <button type="button" data-target="branches" data-color="#904A39" class="color-btn h-10 rounded-full border" style="background:#904A39"></button>
+            <button type="button" data-target="branches" data-color="#BFBFBF" class="color-btn h-10 rounded-full border" style="background:#BFBFBF"></button>
+            <button type="button" data-target="branches" data-color="#FFFFFF" class="color-btn h-10 rounded-full border" style="background:#FFFFFF"></button>
+          </div>
+        </article>
+
+        <article class="rounded-2xl border border-gray-200 p-4">
+          <div class="mb-2 flex items-center gap-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-full border text-sm">3</span>
+            <h3 class="text-base font-semibold">Teinte des verres</h3>
+          </div>
+          <p class="mb-3 text-xs text-gray-600">Sélectionnez la teinte qui vous plaît</p>
+          <div class="grid grid-cols-5 gap-3">
+            <button type="button" data-target="verres" data-color="#E5E7EB" data-alpha="0.35" class="lens-btn h-10 rounded-full border" style="background:#E5E7EB"></button>
+            <button type="button" data-target="verres" data-color="#E8AB9B" data-alpha="0.35" class="lens-btn h-10 rounded-full border" style="background:#E8AB9B"></button>
+            <button type="button" data-target="verres" data-color="#E9D265" data-alpha="0.35" class="lens-btn h-10 rounded-full border" style="background:#E9D265"></button>
+            <button type="button" data-target="verres" data-color="#7B4B3A" data-alpha="0.35" class="lens-btn h-10 rounded-full border" style="background:#7B4B3A"></button>
+            <button type="button" data-target="verres" data-color="#FFFFFF" data-alpha="0.10" class="lens-btn h-10 rounded-full border" style="background:#FFFFFF"></button>
+          </div>
+        </article>
+
+        <article class="rounded-2xl border border-gray-200 p-4">
+          <div class="mb-2 flex items-center gap-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-full border text-sm">4</span>
+            <h3 class="text-base font-semibold">Matériau de la monture</h3>
+          </div>
+          <p class="mb-3 text-xs text-gray-600">Sélectionnez la matière qui vous convient</p>
+<div id="material-group" class="space-y-3" role="radiogroup" aria-label="Matériau de la monture">
+  <button type="button" role="radio" aria-checked="true" tabindex="0"
+          data-value="acetate"
+          class="material-card w-full text-left rounded-xl border-2 border-black/70 bg-blue-50/30 px-4 py-3">
+    <div class="flex items-center justify-between text-sm">
+      <span class="font-medium">Acétate</span>
+      <span class="text-xs">+0€</span>
+    </div>
+    <div class="mt-1 text-xs text-gray-600">Léger et confortable</div>
+  </button>
+
+  <button type="button" role="radio" aria-checked="false" tabindex="-1"
+          data-value="metal"
+          class="material-card w-full text-left rounded-xl border border-gray-200 px-4 py-3 hover:border-gray-300">
+    <div class="flex items-center justify-between text-sm">
+      <span class="font-medium">Métal</span>
+      <span class="text-xs">+40€</span>
+    </div>
+    <div class="mt-1 text-xs text-gray-600">Élégant et durable</div>
+  </button>
+
+  <button type="button" role="radio" aria-checked="false" tabindex="-1"
+          data-value="titane"
+          class="material-card w-full text-left rounded-xl border border-gray-200 px-4 py-3 hover:border-gray-300">
+    <div class="flex items-center justify-between text-sm">
+      <span class="font-medium">Titane</span>
+      <span class="text-xs">+80€</span>
+    </div>
+    <div class="mt-1 text-xs text-gray-600">Premium · Ultra-léger</div>
+  </button>
+</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    // Après injection du SVG dans #svg-mount, on récupère ses éléments
+    const svg = document.querySelector('#svg-mount svg'); // ← le <svg> injecté
+    const grpMonture = svg.querySelector('#monture');
+    const grpBranches = svg.querySelector('#branches');
+    const grpVerres   = svg.querySelector('#verres');
+
+    // Cibles : uniquement les grandes surfaces "cls-4" (contours remplis)
+    const frameParts     = grpMonture.querySelectorAll('.cls-4');
+    const bigBranchParts = grpBranches.querySelectorAll('.cls-4');
+    const lensParts      = grpVerres.querySelectorAll('path');
+
+    // Récap visuel
+    const recapMonture  = document.getElementById('recap-monture');
+    const recapBranches = document.getElementById('recap-branches');
+    const recapVerres   = document.getElementById('recap-verres');
+
+    // État
+    const state = {
+      monture: '#9CA3AF',
+      branches: '#706f6f',
+      verres: '#E5E7EB',
+      alpha: 0.35
+    };
+
+    // IMPORTANT : on utilise style.fill / style.opacity pour passer devant le <style> interne du SVG
+    function applyFrameColor(color) {
+      frameParts.forEach(p => p.style.fill = color);
+      recapMonture.style.background = color;
+      state.monture = color;
+    }
+    function applyBranchColor(color) {
+      bigBranchParts.forEach(p => p.style.fill = color);
+      recapBranches.style.background = color;
+      state.branches = color;
+    }
+    function applyLensTint(color, alpha = 0.35) {
+      lensParts.forEach(p => {
+        p.style.fill = color;
+        p.style.opacity = alpha;
+      });
+      recapVerres.style.background = color;
+      recapVerres.style.opacity = alpha;
+      state.verres = color;
+      state.alpha = alpha;
+    }
+
+    // valeurs initiales
+    applyFrameColor(state.monture);
+    applyBranchColor(state.branches);
+    applyLensTint(state.verres, state.alpha);
+
+    // Click handlers
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-target');
+        const color  = btn.getAttribute('data-color');
+        if (target === 'monture')  applyFrameColor(color);
+        if (target === 'branches') applyBranchColor(color);
+      });
+    });
+    document.querySelectorAll('.lens-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const color = btn.getAttribute('data-color');
+        const alpha = parseFloat(btn.getAttribute('data-alpha') || '0.35');
+        applyLensTint(color, alpha);
+      });
+    });
+
+    // Sauvegarde locale (avant PocketBase)
+    document.getElementById('btn-save')?.addEventListener('click', () => {
+      localStorage.setItem('config-lunettes', JSON.stringify(state));
+      alert('Configuration sauvegardée localement ✅');
+    });
+
+    // Reset
+    document.getElementById('btn-reset')?.addEventListener('click', () => {
+      applyFrameColor('#FFFFFF');
+      applyBranchColor('#111111');
+      applyLensTint('#FFFFFF', 0.10);
+    });
+
+    // Recharger si déjà sauvegardé
+    const saved = localStorage.getItem('config-lunettes');
+    if (saved) {
+      const s = JSON.parse(saved);
+      applyFrameColor(s.monture || state.monture);
+      applyBranchColor(s.branches || state.branches);
+      applyLensTint(s.verres || state.verres, s.alpha ?? state.alpha);
+    }
+
+    const matGroup = document.getElementById('material-group');
+const selectedClasses = ['border-2','border-black/70','bg-blue-50/30'];
+
+function selectMaterial(card) {
+  // reset visuel
+  matGroup.querySelectorAll('.material-card').forEach(btn => {
+    btn.classList.remove(...selectedClasses);
+    btn.classList.add('border','border-gray-200');
+    btn.setAttribute('aria-checked','false');
+    btn.tabIndex = -1;
+  });
+  // sélection visuelle
+  card.classList.add(...selectedClasses);
+  card.classList.remove('border','border-gray-200');
+  card.setAttribute('aria-checked','true');
+  card.tabIndex = 0;
+  card.focus();
+
+  // mémorise (facultatif)
+  state.material = card.dataset.value;
+}
+
+// clic souris
+matGroup.addEventListener('click', (e) => {
+  const card = e.target.closest('.material-card');
+  if (card) selectMaterial(card);
+});
+
+// accessibilité clavier (flèches / Entrée / Espace)
+matGroup.addEventListener('keydown', (e) => {
+  const cards = [...matGroup.querySelectorAll('.material-card')];
+  const current = document.activeElement.closest('.material-card') || cards[0];
+  const i = cards.indexOf(current);
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault(); selectMaterial(cards[(i + 1) % cards.length]);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault(); selectMaterial(cards[(i - 1 + cards.length) % cards.length]);
+  } else if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault(); selectMaterial(current);
+  }
+});
+  </script>
+</Layout>
