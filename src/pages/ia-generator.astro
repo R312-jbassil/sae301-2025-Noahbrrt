@@ -1,0 +1,265 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Générateur IA – SVG lunettes">
+  <section class="mx-auto max-w-6xl px-4 py-8 space-y-6">
+    <header class="space-y-1">
+      <h1 class="text-2xl font-semibold">Générer / éditer un SVG avec l’IA</h1>
+      <p class="text-sm text-gray-600">
+        Écris un prompt (ex: “lunettes aviateur, branches noires, verres fumés”).
+      </p>
+    </header>
+
+    <!-- TOP: Aperçu (gauche) + Code (droite) -->
+    <div class="grid gap-6 md:grid-cols-2">
+      <!-- Aperçu -->
+      <div class="rounded-2xl border bg-white shadow-xl">
+        <div class="flex items-center justify-between px-4 py-3 border-b">
+          <h3 class="text-sm font-semibold">Aperçu</h3>
+          <span class="text-xs text-gray-500">Rendu SVG</span>
+        </div>
+        <div
+          id="svg-container"
+          class="m-4 flex min-h-[420px] items-center justify-center rounded-lg border bg-gradient-to-br from-white to-gray-50 shadow-inner p-4"
+        >
+          <em class="text-xs text-gray-500">Le SVG généré s’affichera ici</em>
+        </div>
+      </div>
+
+      <!-- Code SVG -->
+      <div class="rounded-2xl border bg-white h-full shadow-xl">
+        <div class="flex items-center justify-between px-4 py-3 border-b">
+          <h3 class="text-sm font-semibold">SVG (copiable)</h3>
+          <span class="text-xs text-gray-500">Code</span>
+        </div>
+        <pre
+          id="svg-output"
+          role="status"
+          aria-live="polite"
+          class="m-4 h-[420px] overflow-auto rounded-lg bg-gradient-to-b from-white to-gray-50 p-4 text-xs leading-6 shadow-inner border border-gray-100"
+        ></pre>
+      </div>
+    </div>
+
+    <!-- BOTTOM: Chat (historique + saisie + actions) -->
+    <div class="rounded-2xl border bg-white shadow-xl">
+      <!-- Historique -->
+      <div class="px-4 py-3 border-b flex items-center justify-between">
+        <h3 class="text-sm font-semibold">Historique</h3>
+        <span class="text-xs text-gray-500">Contexte IA</span>
+      </div>
+      <div id="chat-history" class="px-4 py-4 max-h-64 overflow-auto space-y-3">
+        <div class="text-xs text-gray-500">
+          Aucun échange pour l’instant. Rédige un prompt ci-dessous.
+        </div>
+      </div>
+
+      <!-- Zone de saisie + actions -->
+      <div class="border-t px-4 py-4">
+        <label for="user-prompt" class="sr-only">Votre message</label>
+        <textarea
+          id="user-prompt"
+          rows="3"
+          class="w-full rounded-xl border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 shadow-sm"
+          placeholder="Décris la paire ou l'édition voulue…"
+        ></textarea>
+
+        <div class="mt-3 flex flex-wrap items-center justify-end gap-2">
+          <button
+            id="generate-button"
+            class="rounded-lg bg-black px-4 py-2 text-white text-sm hover:bg-gray-900 transition transform hover:-translate-y-0.5 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-black/10"
+          >
+            Générer
+          </button>
+          <button
+            id="edit-button"
+            class="rounded-lg bg-gray-800 px-4 py-2 text-white text-sm hover:bg-gray-900 transition transform hover:-translate-y-0.5 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-black/10"
+          >
+            Éditer
+          </button>
+          <button
+            id="save-button"
+            class="rounded-lg bg-emerald-600 px-4 py-2 text-white text-sm hover:bg-emerald-700 transition transform hover:-translate-y-0.5 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-emerald-600/30"
+          >
+            Sauvegarder
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======= Script IA (génération / édition) ======= -->
+  <script>
+    // Historique pour l'édition en langage naturel
+    let promptList = [];
+    window.promptList = promptList; // accessible à l'autre script
+
+    async function callGenerate(messages) {
+      const res = await fetch('/api/generateSVG', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(messages),
+      });
+      return await res.json(); // { svg, error? }
+    }
+
+    const textarea = document.getElementById('user-prompt');
+    const svgContainer = document.getElementById('svg-container');
+    const svgOutput = document.getElementById('svg-output');
+    const btnGen = document.getElementById('generate-button');
+    const btnEdit = document.getElementById('edit-button');
+
+    function showLoading() {
+      svgContainer.innerHTML = '<div class="flex flex-col items-center gap-2"><span class="loading loading-ring loading-xl"></span><span class="text-sm text-gray-500">Génération en cours…</span></div>';
+      if (svgOutput) svgOutput.textContent = 'Génération en cours…';
+      btnGen.disabled = true;
+      btnEdit.disabled = true;
+    }
+    function stopLoading() {
+      btnGen.disabled = false;
+      btnEdit.disabled = false;
+      if (svgOutput && svgOutput.textContent.trim() === 'Génération en cours…') {
+        svgOutput.textContent = '';
+      }
+    }
+
+    async function handleGenerate() {
+      const prompt = textarea.value.trim();
+      if (!prompt) { alert('Écris un prompt.'); return; }
+
+      promptList = [{ role: 'user', content: prompt }];
+      window.promptList = promptList;
+
+      showLoading();
+      const data = await callGenerate(promptList);
+
+      if (data.error) {
+        svgContainer.innerHTML = `<div style="color:#b91c1c">Erreur serveur : ${data.error}</div>`;
+        svgOutput.textContent = "";
+        stopLoading();
+        return;
+      }
+
+      const svg = data.svg || '';
+      svgOutput.textContent = svg;
+      svgContainer.innerHTML = svg || '<em>Aucun SVG renvoyé</em>';
+      stopLoading();
+
+      promptList.push({ role: 'assistant', content: svg });
+      window.promptList = promptList;
+    }
+
+    async function handleEdit() {
+      const editInstruction = textarea.value.trim();
+      if (!editInstruction) { alert('Écris une instruction d’édition.'); return; }
+      if (promptList.length === 0) { alert('Génère d’abord un SVG.'); return; }
+
+      promptList.push({ role: 'user', content: editInstruction });
+      window.promptList = promptList;
+
+      showLoading();
+      const data = await callGenerate(promptList);
+
+      if (data.error) {
+        svgContainer.innerHTML = `<div style="color:#b91c1c">Erreur serveur : ${data.error}</div>`;
+        svgOutput.textContent = "";
+        stopLoading();
+        return;
+      }
+
+      const svg = data.svg || '';
+      svgOutput.textContent = svg;
+      svgContainer.innerHTML = svg || '<em>Aucun SVG renvoyé</em>';
+      stopLoading();
+
+      promptList.push({ role: 'assistant', content: svg });
+      window.promptList = promptList;
+    }
+
+    document.getElementById('generate-button')?.addEventListener('click', handleGenerate);
+    document.getElementById('edit-button')?.addEventListener('click', handleEdit);
+
+    // === Sauvegarde vers PocketBase ===
+    async function saveSVG(params) {
+      const res = await fetch("/api/saveSVG", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      return await res.json();
+    }
+
+    document.getElementById('save-button')?.addEventListener('click', async () => {
+      const svgCode = document.getElementById("svg-output")?.textContent?.trim() || "";
+      if (!svgCode || !svgCode.startsWith("<svg")) {
+        alert("Aucun SVG à sauvegarder. Génére d’abord un visuel.");
+        return;
+      }
+      const nom = prompt("Nom de la paire de lunettes ?");
+      if (!nom) return;
+
+      const lastUserPrompt = (window.promptList || []).slice().reverse().find(m => m.role === "user")?.content || "";
+
+      const params = {
+        nom_lunette: nom,
+        code_svg: svgCode,
+        prompt_ia: lastUserPrompt,
+        prix: 149,
+
+        // à remplir si tu as un formulaire de config :
+        couleur_monture: "",
+        couleur_branches: "",
+        teinte_verres: "",
+        largeur_pont: "",
+        taille_verre: "",
+
+        genere_IA: true,
+      };
+
+      const res = await saveSVG(params);
+      if (res.success) {
+        alert("SVG sauvegardé ✅ (id: " + res.id + ")");
+      } else {
+        alert("Erreur sauvegarde : " + res.error);
+      }
+    });
+  </script>
+
+  <!-- ======= Script affichage Historique ======= -->
+  <script>
+    const chatEl = document.getElementById('chat-history');
+    const btnGen2 = document.getElementById('generate-button');
+    const btnEdit2 = document.getElementById('edit-button');
+
+    function renderChat() {
+      if (!window.promptList || window.promptList.length === 0) {
+        chatEl.innerHTML = '<div class="text-xs text-gray-500">Aucun échange pour l’instant. Rédige un prompt ci-dessous.</div>';
+        return;
+      }
+      chatEl.innerHTML = window.promptList.map((m) => {
+        const mine = m.role === 'user';
+        const bubble =
+          m.content && m.content.trim().startsWith('<svg')
+            ? '[SVG généré]'
+            : m.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return `
+          <div class="flex ${mine ? 'justify-end' : 'justify-start'}">
+            <div class="max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-5 ${
+              mine ? 'bg-black text-white' : 'bg-gray-100 text-gray-800 border'
+            }">
+              <span class="block text-[10px] opacity-70 mb-1">${mine ? 'Vous' : 'IA'}</span>
+              <div class="whitespace-pre-wrap break-words">${bubble}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    const refresh = () => setTimeout(renderChat, 30);
+    btnGen2?.addEventListener('click', refresh);
+    btnEdit2?.addEventListener('click', refresh);
+    renderChat();
+  </script>
+</Layout>

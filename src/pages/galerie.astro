@@ -1,0 +1,65 @@
+---
+export const prerender = false; // pour lire en live depuis PB pendant le dev
+
+import Layout from "../layouts/Layout.astro";
+import { getPB } from "../utils/pb";
+import { Collections } from "../utils/pocketbase-types";
+
+const pb = await getPB();
+
+// 1 = page, 48 = taille page, tri: plus récentes d'abord
+const list = await pb.collection(Collections.Lunettes).getList(1, 48, {
+  sort: '-created'
+});
+
+// records = list.items
+const items = list?.items ?? [];
+---
+
+<Layout title="Galerie — TaVue">
+  <section class="mx-auto max-w-6xl px-4 py-8">
+    <header class="mb-6 flex items-baseline justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold">Galerie des créations</h1>
+        <p class="text-sm text-gray-600">SVG sauvegardés depuis l’IA ou le configurateur</p>
+      </div>
+      <a href="/configurateur" class="text-sm underline hover:no-underline">Créer une nouvelle paire</a>
+    </header>
+
+    {items.length === 0 ? (
+      <p class="text-sm text-gray-500">Aucun modèle pour l’instant.</p>
+    ) : (
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {items.map((it) => (
+          <article class="rounded-2xl border bg-white shadow-sm overflow-hidden">
+            <div class="aspect-[4/3] grid place-items-center bg-gray-50 p-4">
+              <div class="w-full max-w-[420px]" set:html={it.code_svg}></div>
+            </div>
+            <div class="p-4 space-y-2 text-sm">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold truncate" title={it.nom_lunette}>{it.nom_lunette || 'Sans nom'}</h3>
+                <span class="text-xs text-gray-500">{new Date(it.created).toLocaleDateString()}</span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                {it.couleur_monture && <span class="inline-flex items-center gap-1 rounded px-2 py-0.5 border text-[11px]">
+                  <span class="inline-block h-3 w-3 rounded" style={`background:${it.couleur_monture}`}></span> Monture
+                </span>}
+                {it.couleur_branches && <span class="inline-flex items-center gap-1 rounded px-2 py-0.5 border text-[11px]">
+                  <span class="inline-block h-3 w-3 rounded" style={`background:${it.couleur_branches}`}></span> Branches
+                </span>}
+                {it.teinte_verres && <span class="inline-flex items-center gap-1 rounded px-2 py-0.5 border text-[11px]">
+                  <span class="inline-block h-3 w-3 rounded" style={`background:${it.teinte_verres}; opacity:0.6`}></span> Verres
+                </span>}
+                {typeof it.taille_verre !== 'undefined' && <span class="text-[11px] border rounded px-2 py-0.5">Verres {it.taille_verre}%</span>}
+                {typeof it.largeur_pont !== 'undefined' && <span class="text-[11px] border rounded px-2 py-0.5">Pont {it.largeur_pont >= 0 ? '+' : ''}{it.largeur_pont}%</span>}
+                {it.genere_IA ? <span class="text-[11px] rounded px-2 py-0.5 bg-purple-50 border border-purple-200">IA</span>
+                               : <span class="text-[11px] rounded px-2 py-0.5 bg-emerald-50 border border-emerald-200">Config</span>}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </section>
+</Layout>

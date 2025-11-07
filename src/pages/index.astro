@@ -2,7 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import hero from "../assets/hero.webp";
 import img_home from "../assets/img_home.webp";
-import placeholderGlasses from "/src/assets/astro.svg"; // remplace par tes visuels de modèles
+import Glasses from "/src/assets/lunettes.svg";
 ---
 
 <Layout title="TaVue — Créez vos lunettes sur mesure">
@@ -88,7 +88,7 @@ import placeholderGlasses from "/src/assets/astro.svg"; // remplace par tes visu
       ].map((m) => (
         <article class="rounded-2xl border border-gray-200 p-5">
           <div class="mb-4 overflow-hidden rounded-xl bg-[url('/checker.png')]">
-            <img src={placeholderGlasses.src} alt="" class="mx-auto h-36 w-auto opacity-80" />
+            <img src={Glasses.src} alt="" class="mx-auto h-36 w-auto opacity-80" />
           </div>
           <div class="flex items-start justify-between">
             <div>

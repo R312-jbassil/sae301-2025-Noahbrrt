@@ -57,9 +57,10 @@ import glassesSvg from "../assets/lunettes.svg?raw";
             Ajouter au panier · 149€
           </button>
           <div class="grid grid-cols-2 gap-3">
-            <button type="button" id="btn-save" class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
-              Sauvegarder
-            </button>
+            <button type="button" id="btn-save-config"
+  class="w-full rounded-md border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+  Sauvegarder ma configuration
+</button>
             <button type="button" id="btn-reset" class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
               Réinitialiser
             </button>
@@ -112,6 +113,34 @@ import glassesSvg from "../assets/lunettes.svg?raw";
         </article>
 
         <article class="rounded-2xl border border-gray-200 p-4">
+  <div class="mb-2 flex items-center gap-2">
+    <span class="flex h-7 w-7 items-center justify-center rounded-full border text-sm">5</span>
+    <h3 class="text-base font-semibold">Dimensions</h3>
+  </div>
+  <div class="space-y-4">
+    <label class="block">
+      <div class="mb-1 flex items-center justify-between text-xs text-gray-600">
+        <span>Taille des verres</span>
+        <span id="label-lens-scale" class="tabular-nums">100%</span>
+      </div>
+      <input id="lens-scale" type="range" min="90" max="110" step="1"
+             class="w-full accent-black" value="100" />
+      <p class="mt-1 text-[11px] text-gray-500">Agrandit/réduit légèrement chaque verre (±10%).</p>
+    </label>
+
+    <label class="block">
+      <div class="mb-1 flex items-center justify-between text-xs text-gray-600">
+        <span>Largeur du pont</span>
+        <span id="label-bridge" class="tabular-nums">0 px</span>
+      </div>
+      <input id="bridge-offset" type="range" min="-10" max="10" step="1"
+             class="w-full accent-black" value="0" />
+      <p class="mt-1 text-[11px] text-gray-500">Ecarte ou rapproche légèrement les verres (±10 px).</p>
+    </label>
+  </div>
+</article>
+
+        <article class="rounded-2xl border border-gray-200 p-4">
           <div class="mb-2 flex items-center gap-2">
             <span class="flex h-7 w-7 items-center justify-center rounded-full border text-sm">4</span>
             <h3 class="text-base font-semibold">Matériau de la monture</h3>
@@ -160,17 +189,14 @@ import glassesSvg from "../assets/lunettes.svg?raw";
     const grpBranches = svg.querySelector('#branches');
     const grpVerres   = svg.querySelector('#verres');
 
-    // Cibles : uniquement les grandes surfaces "cls-4" (contours remplis)
     const frameParts     = grpMonture.querySelectorAll('.cls-4');
     const bigBranchParts = grpBranches.querySelectorAll('.cls-4');
     const lensParts      = grpVerres.querySelectorAll('path');
 
-    // Récap visuel
     const recapMonture  = document.getElementById('recap-monture');
     const recapBranches = document.getElementById('recap-branches');
     const recapVerres   = document.getElementById('recap-verres');
 
-    // État
     const state = {
       monture: '#9CA3AF',
       branches: '#706f6f',
@@ -178,7 +204,6 @@ import glassesSvg from "../assets/lunettes.svg?raw";
       alpha: 0.35
     };
 
-    // IMPORTANT : on utilise style.fill / style.opacity pour passer devant le <style> interne du SVG
     function applyFrameColor(color) {
       frameParts.forEach(p => p.style.fill = color);
       recapMonture.style.background = color;
@@ -200,12 +225,10 @@ import glassesSvg from "../assets/lunettes.svg?raw";
       state.alpha = alpha;
     }
 
-    // valeurs initiales
     applyFrameColor(state.monture);
     applyBranchColor(state.branches);
     applyLensTint(state.verres, state.alpha);
 
-    // Click handlers
     document.querySelectorAll('.color-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const target = btn.getAttribute('data-target');
@@ -222,20 +245,17 @@ import glassesSvg from "../assets/lunettes.svg?raw";
       });
     });
 
-    // Sauvegarde locale (avant PocketBase)
     document.getElementById('btn-save')?.addEventListener('click', () => {
       localStorage.setItem('config-lunettes', JSON.stringify(state));
       alert('Configuration sauvegardée localement ✅');
     });
 
-    // Reset
     document.getElementById('btn-reset')?.addEventListener('click', () => {
       applyFrameColor('#FFFFFF');
       applyBranchColor('#111111');
       applyLensTint('#FFFFFF', 0.10);
     });
 
-    // Recharger si déjà sauvegardé
     const saved = localStorage.getItem('config-lunettes');
     if (saved) {
       const s = JSON.parse(saved);
@@ -248,31 +268,26 @@ import glassesSvg from "../assets/lunettes.svg?raw";
 const selectedClasses = ['border-2','border-black/70','bg-blue-50/30'];
 
 function selectMaterial(card) {
-  // reset visuel
   matGroup.querySelectorAll('.material-card').forEach(btn => {
     btn.classList.remove(...selectedClasses);
     btn.classList.add('border','border-gray-200');
     btn.setAttribute('aria-checked','false');
     btn.tabIndex = -1;
   });
-  // sélection visuelle
   card.classList.add(...selectedClasses);
   card.classList.remove('border','border-gray-200');
   card.setAttribute('aria-checked','true');
   card.tabIndex = 0;
   card.focus();
 
-  // mémorise (facultatif)
   state.material = card.dataset.value;
 }
 
-// clic souris
 matGroup.addEventListener('click', (e) => {
   const card = e.target.closest('.material-card');
   if (card) selectMaterial(card);
 });
 
-// accessibilité clavier (flèches / Entrée / Espace)
 matGroup.addEventListener('keydown', (e) => {
   const cards = [...matGroup.querySelectorAll('.material-card')];
   const current = document.activeElement.closest('.material-card') || cards[0];
@@ -285,5 +300,128 @@ matGroup.addEventListener('keydown', (e) => {
     e.preventDefault(); selectMaterial(current);
   }
 });
+
+const lensScaleInput = document.getElementById('lens-scale');      
+const lensScaleLabel = document.getElementById('label-lens-scale'); 
+const bridgeInput    = document.getElementById('bridge-offset');    
+const bridgeLabel    = document.getElementById('label-bridge');    
+
+
+function setScaleAroundCenter(el, scaleX = 1, scaleY = 1) {
+  const b = el.getBBox();
+  const cx = b.x + b.width / 2;
+  const cy = b.y + b.height / 2;
+  const t = `
+    translate(${cx} ${cy})
+    scale(${scaleX} ${scaleY})
+    translate(${-cx} ${-cy})
+  `.replace(/\s+/g,' ').trim();
+  el.setAttribute('transform', t);
+}
+
+state.lensScale   = 1.0; 
+state.bridgeScale = 1.0; 
+
+function applyLensScale(scale) {
+  state.lensScale = scale;
+  lensParts.forEach(el => setScaleAroundCenter(el, scale, scale));
+  if (lensScaleLabel) lensScaleLabel.textContent = `${Math.round(scale * 100)}%`;
+}
+
+const montureBBox = grpMonture.getBBox();
+const mCx = montureBBox.x + montureBBox.width / 2;
+const mCy = montureBBox.y + montureBBox.height / 2;
+
+window.state = state;
+
+function applyLensScale(scale) {
+  state.lensScale = scale;
+  state.taille_verre = Math.round(scale * 100); 
+  lensParts.forEach(el => setScaleAroundCenter(el, scale, scale));
+  if (lensScaleLabel) lensScaleLabel.textContent = `${state.taille_verre}%`;
+}
+
+function applyBridgeScale(scaleX) {
+  state.bridgeScale = scaleX;
+  state.largeur_pont = Math.round((scaleX - 1) * 100); 
+  const t = `
+    translate(${mCx} ${mCy})
+    scale(${scaleX} 1)
+    translate(${-mCx} ${-mCy})
+  `.replace(/\s+/g,' ').trim();
+  grpMonture.setAttribute('transform', t);
+  const delta = state.largeur_pont;
+  if (bridgeLabel) bridgeLabel.textContent = (delta > 0 ? `+${delta}%` : `${delta}%`);
+}
+ function serializeCurrentSVG() {
+    const svgEl = document.querySelector('#svg-mount svg');
+    if (!svgEl) return "";
+
+    // Cloner pour ne pas toucher au DOM affiché
+    const clone = svgEl.cloneNode(true);
+
+    // S'assurer que les attributs essentiels sont présents
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    if (!clone.getAttribute('version')) clone.setAttribute('version', '1.1');
+
+    // Optionnel: donner une viewBox si absente (prend la bbox globale)
+    if (!clone.getAttribute('viewBox')) {
+      const bb = svgEl.getBBox();
+      clone.setAttribute('viewBox', `${bb.x} ${bb.y} ${bb.width} ${bb.height}`);
+      clone.removeAttribute('width');
+      clone.removeAttribute('height');
+      clone.style.width = '100%';
+      clone.style.height = 'auto';
+    }
+
+    return clone.outerHTML;
+  }
+
+  // -- Appel API --
+  async function saveToPB(params) {
+    const res = await fetch('/api/saveSVG', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    return await res.json();
+  }
+
+  // -- Click handler: "Sauvegarder ma configuration" --
+  document.getElementById('btn-save-config')?.addEventListener('click', async () => {
+    const code_svg = serializeCurrentSVG();
+    if (!code_svg || !code_svg.startsWith('<svg')) {
+      alert("Aucun SVG valide à sauvegarder.");
+      return;
+    }
+
+    const nom = prompt("Nom de votre création (ex: 'Aviator fumé') :");
+    if (!nom) return;
+
+    // Récupérer le matériau sélectionné (si tu as mis state.material plus haut)
+    const material = state.material || 'acetate';
+
+    const payload = {
+      nom_lunette: nom,
+      code_svg,
+      prix: 149,
+      couleur_monture: state.monture,
+      couleur_branches: state.branches,
+      teinte_verres: state.verres,
+      taille_verre: state.taille_verre ?? 100,          // en %
+      largeur_pont: state.largeur_pont ?? 0,            // en %
+      material,
+      genere_IA: false,                                  // c’est le configurateur
+      prompt_ia: "",                                     // non utilisé ici
+    };
+
+    const r = await saveToPB(payload);
+    if (r.success) {
+      alert("Configuration enregistrée ✅ (id: " + r.id + ")");
+    } else {
+      alert("Erreur sauvegarde: " + r.error);
+      console.error("Erreur saveToPB:", r);
+    }
+  });
   </script>
 </Layout>
