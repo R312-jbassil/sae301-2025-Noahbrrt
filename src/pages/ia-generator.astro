@@ -11,9 +11,7 @@ import Layout from "../layouts/Layout.astro";
       </p>
     </header>
 
-    <!-- TOP: Aperçu (gauche) + Code (droite) -->
     <div class="grid gap-6 md:grid-cols-2">
-      <!-- Aperçu -->
       <div class="rounded-2xl border bg-white shadow-xl">
         <div class="flex items-center justify-between px-4 py-3 border-b">
           <h3 class="text-sm font-semibold">Aperçu</h3>
@@ -27,7 +25,6 @@ import Layout from "../layouts/Layout.astro";
         </div>
       </div>
 
-      <!-- Code SVG -->
       <div class="rounded-2xl border bg-white h-full shadow-xl">
         <div class="flex items-center justify-between px-4 py-3 border-b">
           <h3 class="text-sm font-semibold">SVG (copiable)</h3>
@@ -42,9 +39,7 @@ import Layout from "../layouts/Layout.astro";
       </div>
     </div>
 
-    <!-- BOTTOM: Chat (historique + saisie + actions) -->
     <div class="rounded-2xl border bg-white shadow-xl">
-      <!-- Historique -->
       <div class="px-4 py-3 border-b flex items-center justify-between">
         <h3 class="text-sm font-semibold">Historique</h3>
         <span class="text-xs text-gray-500">Contexte IA</span>
@@ -55,7 +50,6 @@ import Layout from "../layouts/Layout.astro";
         </div>
       </div>
 
-      <!-- Zone de saisie + actions -->
       <div class="border-t px-4 py-4">
         <label for="user-prompt" class="sr-only">Votre message</label>
         <textarea
@@ -89,177 +83,214 @@ import Layout from "../layouts/Layout.astro";
     </div>
   </section>
 
-  <!-- ======= Script IA (génération / édition) ======= -->
-  <script>
-    // Historique pour l'édition en langage naturel
-    let promptList = [];
-    window.promptList = promptList; // accessible à l'autre script
+  <script is:inline>
+ 
+  let promptList = [];
+  window.promptList = promptList;
+  let currentId = null; 
 
-    async function callGenerate(messages) {
-      const res = await fetch('/api/generateSVG', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(messages),
-      });
-      return await res.json(); // { svg, error? }
-    }
+  const textarea = document.getElementById('user-prompt');
+  const svgContainer = document.getElementById('svg-container');
+  const svgOutput = document.getElementById('svg-output');
+  const btnGen = document.getElementById('generate-button');
+  const btnEdit = document.getElementById('edit-button');
+  const btnSave = document.getElementById('save-button');
+  const chatEl = document.getElementById('chat-history');
 
-    const textarea = document.getElementById('user-prompt');
-    const svgContainer = document.getElementById('svg-container');
-    const svgOutput = document.getElementById('svg-output');
-    const btnGen = document.getElementById('generate-button');
-    const btnEdit = document.getElementById('edit-button');
-
-    function showLoading() {
-      svgContainer.innerHTML = '<div class="flex flex-col items-center gap-2"><span class="loading loading-ring loading-xl"></span><span class="text-sm text-gray-500">Génération en cours…</span></div>';
-      if (svgOutput) svgOutput.textContent = 'Génération en cours…';
-      btnGen.disabled = true;
-      btnEdit.disabled = true;
-    }
-    function stopLoading() {
-      btnGen.disabled = false;
-      btnEdit.disabled = false;
-      if (svgOutput && svgOutput.textContent.trim() === 'Génération en cours…') {
-        svgOutput.textContent = '';
-      }
-    }
-
-    async function handleGenerate() {
-      const prompt = textarea.value.trim();
-      if (!prompt) { alert('Écris un prompt.'); return; }
-
-      promptList = [{ role: 'user', content: prompt }];
-      window.promptList = promptList;
-
-      showLoading();
-      const data = await callGenerate(promptList);
-
-      if (data.error) {
-        svgContainer.innerHTML = `<div style="color:#b91c1c">Erreur serveur : ${data.error}</div>`;
-        svgOutput.textContent = "";
-        stopLoading();
-        return;
-      }
-
-      const svg = data.svg || '';
-      svgOutput.textContent = svg;
-      svgContainer.innerHTML = svg || '<em>Aucun SVG renvoyé</em>';
-      stopLoading();
-
-      promptList.push({ role: 'assistant', content: svg });
-      window.promptList = promptList;
-    }
-
-    async function handleEdit() {
-      const editInstruction = textarea.value.trim();
-      if (!editInstruction) { alert('Écris une instruction d’édition.'); return; }
-      if (promptList.length === 0) { alert('Génère d’abord un SVG.'); return; }
-
-      promptList.push({ role: 'user', content: editInstruction });
-      window.promptList = promptList;
-
-      showLoading();
-      const data = await callGenerate(promptList);
-
-      if (data.error) {
-        svgContainer.innerHTML = `<div style="color:#b91c1c">Erreur serveur : ${data.error}</div>`;
-        svgOutput.textContent = "";
-        stopLoading();
-        return;
-      }
-
-      const svg = data.svg || '';
-      svgOutput.textContent = svg;
-      svgContainer.innerHTML = svg || '<em>Aucun SVG renvoyé</em>';
-      stopLoading();
-
-      promptList.push({ role: 'assistant', content: svg });
-      window.promptList = promptList;
-    }
-
-    document.getElementById('generate-button')?.addEventListener('click', handleGenerate);
-    document.getElementById('edit-button')?.addEventListener('click', handleEdit);
-
-    // === Sauvegarde vers PocketBase ===
-    async function saveSVG(params) {
-      const res = await fetch("/api/saveSVG", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(params),
-      });
-      return await res.json();
-    }
-
-    document.getElementById('save-button')?.addEventListener('click', async () => {
-      const svgCode = document.getElementById("svg-output")?.textContent?.trim() || "";
-      if (!svgCode || !svgCode.startsWith("<svg")) {
-        alert("Aucun SVG à sauvegarder. Génére d’abord un visuel.");
-        return;
-      }
-      const nom = prompt("Nom de la paire de lunettes ?");
-      if (!nom) return;
-
-      const lastUserPrompt = (window.promptList || []).slice().reverse().find(m => m.role === "user")?.content || "";
-
-      const params = {
-        nom_lunette: nom,
-        code_svg: svgCode,
-        prompt_ia: lastUserPrompt,
-        prix: 149,
-
-        // à remplir si tu as un formulaire de config :
-        couleur_monture: "",
-        couleur_branches: "",
-        teinte_verres: "",
-        largeur_pont: "",
-        taille_verre: "",
-
-        genere_IA: true,
-      };
-
-      const res = await saveSVG(params);
-      if (res.success) {
-        alert("SVG sauvegardé ✅ (id: " + res.id + ")");
-      } else {
-        alert("Erreur sauvegarde : " + res.error);
-      }
+  async function callGenerate(messages) {
+    const res = await fetch('/api/generateSVG', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(messages),
     });
-  </script>
+    return await res.json(); 
+  }
 
-  <!-- ======= Script affichage Historique ======= -->
-  <script>
-    const chatEl = document.getElementById('chat-history');
-    const btnGen2 = document.getElementById('generate-button');
-    const btnEdit2 = document.getElementById('edit-button');
+  async function fetchLunetteById(id) {
+    const r = await fetch(`/api/lunettes/${id}`, { credentials: 'include' });
+    return await r.json(); 
+  }
 
-    function renderChat() {
-      if (!window.promptList || window.promptList.length === 0) {
-        chatEl.innerHTML = '<div class="text-xs text-gray-500">Aucun échange pour l’instant. Rédige un prompt ci-dessous.</div>';
-        return;
-      }
-      chatEl.innerHTML = window.promptList.map((m) => {
-        const mine = m.role === 'user';
-        const bubble =
-          m.content && m.content.trim().startsWith('<svg')
-            ? '[SVG généré]'
-            : m.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        return `
-          <div class="flex ${mine ? 'justify-end' : 'justify-start'}">
-            <div class="max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-5 ${
-              mine ? 'bg-black text-white' : 'bg-gray-100 text-gray-800 border'
-            }">
-              <span class="block text-[10px] opacity-70 mb-1">${mine ? 'Vous' : 'IA'}</span>
-              <div class="whitespace-pre-wrap break-words">${bubble}</div>
-            </div>
+  async function saveToPB(params) {
+    const res = await fetch('/api/saveSVG', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(params),
+    });
+    return await res.json();
+  }
+
+  async function updateToPB(params) {
+    const res = await fetch('/api/updateSVG', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(params),
+    });
+    return await res.json();
+  }
+
+  function showLoading() {
+    svgContainer.innerHTML = `
+      <div class="flex flex-col items-center gap-2">
+        <span class="loading loading-ring loading-xl"></span>
+        <span class="text-sm text-gray-500">Génération en cours…</span>
+      </div>`;
+    if (svgOutput) svgOutput.textContent = 'Génération en cours…';
+    btnGen.disabled = true;
+    btnEdit.disabled = true;
+  }
+
+  function stopLoading() {
+    btnGen.disabled = false;
+    btnEdit.disabled = false;
+    if (svgOutput && svgOutput.textContent.trim() === 'Génération en cours…') {
+      svgOutput.textContent = '';
+    }
+  }
+
+  function renderChat() {
+    if (!window.promptList || window.promptList.length === 0) {
+      chatEl.innerHTML = '<div class="text-xs text-gray-500">Aucun échange pour l’instant. Rédige un prompt ci-dessous.</div>';
+      return;
+    }
+    chatEl.innerHTML = window.promptList.map((m) => {
+      const mine = m.role === 'user';
+      const bubble =
+        m.content && m.content.trim().startsWith('<svg')
+          ? '[SVG généré]'
+          : m.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return `
+        <div class="flex ${mine ? 'justify-end' : 'justify-start'}">
+          <div class="max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-5 ${
+            mine ? 'bg-black text-white' : 'bg-gray-100 text-gray-800 border'
+          }">
+            <span class="block text-[10px] opacity-70 mb-1">${mine ? 'Vous' : 'IA'}</span>
+            <div class="whitespace-pre-wrap break-words">${bubble}</div>
           </div>
-        `;
-      }).join('');
-      chatEl.scrollTop = chatEl.scrollHeight;
+        </div>
+      `;
+    }).join('');
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  const refreshChat = () => setTimeout(renderChat, 30);
+
+  async function handleGenerate() {
+    const prompt = textarea.value.trim();
+    if (!prompt) { alert('Écris un prompt.'); return; }
+
+    promptList = [{ role: 'user', content: prompt }];
+    window.promptList = promptList;
+    showLoading();
+
+    const data = await callGenerate(promptList);
+    if (data.error) {
+      svgContainer.innerHTML = `<div style="color:#b91c1c">Erreur serveur : ${data.error}</div>`;
+      svgOutput.textContent = '';
+      stopLoading();
+      return;
     }
 
-    const refresh = () => setTimeout(renderChat, 30);
-    btnGen2?.addEventListener('click', refresh);
-    btnEdit2?.addEventListener('click', refresh);
+    const svg = data.svg || '';
+    svgOutput.textContent = svg;
+    svgContainer.innerHTML = svg || '<em>Aucun SVG renvoyé</em>';
+    stopLoading();
+
+    promptList.push({ role: 'assistant', content: svg });
+    window.promptList = promptList;
     renderChat();
-  </script>
+  }
+
+  async function handleEdit() {
+    const editInstruction = textarea.value.trim();
+    if (!editInstruction) { alert('Écris une instruction d’édition.'); return; }
+    if (promptList.length === 0) { alert('Génère d’abord un SVG.'); return; }
+
+    promptList.push({ role: 'user', content: editInstruction });
+    window.promptList = promptList;
+    showLoading();
+
+    const data = await callGenerate(promptList);
+    if (data.error) {
+      svgContainer.innerHTML = `<div style="color:#b91c1c">Erreur serveur : ${data.error}</div>`;
+      svgOutput.textContent = '';
+      stopLoading();
+      return;
+    }
+
+    const svg = data.svg || '';
+    svgOutput.textContent = svg;
+    svgContainer.innerHTML = svg || '<em>Aucun SVG renvoyé</em>';
+    stopLoading();
+
+    promptList.push({ role: 'assistant', content: svg });
+    window.promptList = promptList;
+    renderChat();
+  }
+
+  async function handleSave() {
+    const svgCode = document.getElementById('svg-output')?.textContent?.trim() || '';
+    if (!svgCode || !svgCode.startsWith('<svg')) {
+      alert('Aucun SVG à sauvegarder. Génére d’abord un visuel.');
+      return;
+    }
+
+    const nom = prompt('Nom de la paire de lunettes ?') || 'Génération IA';
+    const lastUserPrompt = (window.promptList || []).slice().reverse().find(m => m.role === 'user')?.content || '';
+
+    const params = {
+      nom_lunette: nom,
+      code_svg: svgCode,
+      prompt_ia: lastUserPrompt,
+      chat_history: JSON.stringify(window.promptList || []),
+      prix: 149,
+      genere_IA: true,
+    };
+
+    const res = currentId
+      ? await updateToPB({ id: currentId, ...params })
+      : await saveToPB(params);
+
+    if (res.success) {
+      currentId = res.id || currentId;
+      alert(`SVG sauvegardé ✅ (id: ${currentId})`);
+    } else {
+      alert('Erreur sauvegarde : ' + (res.error?.message || res.error));
+    }
+  }
+
+  (async function bootFromQuery() {
+    const id = new URLSearchParams(location.search).get('id');
+    if (!id) return;
+
+    const { success, item, error } = await fetchLunetteById(id);
+    if (!success) {
+      alert('Impossible de charger la génération IA.');
+      return;
+    }
+
+    if (!item.genere_IA) {
+      location.replace(`/configurateur?id=${item.id}`);
+      return;
+    }
+
+    svgContainer.innerHTML = item.code_svg || '<em>Aucun SVG</em>';
+    svgOutput.textContent = item.code_svg || '';
+
+    try {
+      promptList = item.chat_history ? JSON.parse(item.chat_history) : [];
+      window.promptList = promptList;
+    } catch {}
+    if (textarea && item.prompt_ia) textarea.value = item.prompt_ia;
+    currentId = item.id;
+    renderChat();
+  })();
+
+  btnGen?.addEventListener('click', handleGenerate);
+  btnEdit?.addEventListener('click', handleEdit);
+  btnSave?.addEventListener('click', handleSave);
+</script>
+
 </Layout>

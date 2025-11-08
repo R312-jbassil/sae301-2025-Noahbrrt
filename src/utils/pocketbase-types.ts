@@ -1,15 +1,11 @@
-// ⚠️ Fichier manuel : mets à jour dès que tu changes la collection dans PocketBase
-
-export enum Collections {
-  Lunettes = "lunettes",
-  // ajoute d'autres collections ici si besoin
-}
-
+export const Collections = {
+  Users: "users",
+  Lunettes: "lunettes",
+};
 export type RecordIdString = string;
 
 export type IsoDateString = string;
 
-/** Champs de la collection "lunettes" (vue côté client) */
 export interface LunettesRecord {
   id?: RecordIdString;
   nom_lunette: string;
@@ -26,7 +22,6 @@ export interface LunettesRecord {
 
   genere_IA?: boolean;
 
-  // meta PocketBase (optionnels si tu veux les exploiter)
   created?: IsoDateString;
   updated?: IsoDateString;
 }

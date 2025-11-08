@@ -1,47 +1,67 @@
 export const prerender = false;
 
-import { getPB } from "../../utils/pb";
-import { Collections } from "../../utils/pocketbase-types";
+import { getPB } from "../../utils/pb.js";
+import { Collections } from "../../utils/pocketbase-types.js";
 
-export async function POST({ request }) {
+export async function POST({ request, cookies, locals }) {
   try {
-    const raw = await request.text();
-    if (!raw) {
-      return new Response(JSON.stringify({ success: false, error: "Body JSON manquant" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    const data = JSON.parse(raw);
+    const data = await request.json();
+    console.log("[saveSVG] body:", data);
 
     const pb = await getPB();
 
+    const cookie = cookies.get("pb_auth")?.value;
+    if (cookie) {
+      pb.authStore.loadFromCookie(cookie);
+      try {
+        await pb.collection("users").authRefresh();
+      } catch (e) {
+        console.error("[saveSVG] authRefresh fail:", e?.status, e?.message);
+      }
+    }
+    if (!pb.authStore.isValid && !locals?.user) {
+      return new Response(JSON.stringify({ success: false, error: "not_authenticated" }), {
+        status: 401, headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = locals?.user?.id || pb.authStore?.record?.id;
+    if (!userId) {
+      return new Response(JSON.stringify({ success: false, error: "missing_user" }), {
+        status: 400, headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const payload = {
-      nom_lunette: data.nom_lunette ?? "",
+      nom_lunette: data.nom_lunette ?? data.name ?? "",
       code_svg: data.code_svg ?? "",
-      prompt_ia: data.prompt_ia ?? "",         // côté configurateur on laisse vide
+      prompt_ia: data.prompt_ia ?? "",
+      chat_history: data.chat_history ?? "",   // uniquement si tu as ce champ
       prix: typeof data.prix === "number" ? data.prix : 149,
 
-      couleur_monture: data.couleur_monture ?? "",
-      couleur_branches: data.couleur_branches ?? "",
-      teinte_verres: data.teinte_verres ?? "",
+      couleur_monture: data.couleur_monture ?? null,
+      couleur_branches: data.couleur_branches ?? null,
+      teinte_verres: data.teinte_verres ?? null,
 
-      largeur_pont: data.largeur_pont ?? "",   // % (ex: -5..+10)
-      taille_verre: data.taille_verre ?? "",   // % (ex: 100)
+      largeur_pont: typeof data.largeur_pont === "number" ? data.largeur_pont : 0,
+      taille_verre: typeof data.taille_verre === "number" ? data.taille_verre : 100,
 
-      genere_IA: typeof data.genere_IA === "boolean" ? data.genere_IA : false,
-      material: data.material ?? "",           // si tu as ajouté ce champ côté PB
+      genere_IA: !!data.genere_IA,
+
+      user: userId, 
     };
 
     const rec = await pb.collection(Collections.Lunettes).create(payload);
+    console.log("[saveSVG] created id:", rec.id);
+
     return new Response(JSON.stringify({ success: true, id: rec.id }), {
       headers: { "Content-Type": "application/json" },
     });
-  } catch (e) {
-    console.error("[saveSVG] ERROR:", e);
-    return new Response(JSON.stringify({ success: false, error: e?.message || String(e) }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+  } catch (err) {
+    console.error("[saveSVG] ERROR:", err?.status, err?.message, err?.data || err);
+    return new Response(
+      JSON.stringify({ success: false, error: err?.data || err?.message || "create_failed" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
   }
 }

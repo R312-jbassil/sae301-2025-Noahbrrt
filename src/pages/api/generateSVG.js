@@ -1,9 +1,7 @@
-// src/pages/api/generateSVG.js
 import OpenAI from "openai";
 
 export async function POST({ request }) {
-  // ✅ tout le code est ici, pas de const globales au-dessus
-  const MODEL = "openai/gpt-oss-20b:free"; // ou mistralai/mistral-7b-instruct:free
+  const MODEL = "openai/gpt-oss-20b:free"; 
   const BASE_URL = "https://openrouter.ai/api/v1";
   const API_KEY = import.meta.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
 
@@ -39,10 +37,8 @@ export async function POST({ request }) {
     };
 
 
-    // determine model to use (prefer static import.meta.env, fall back to process.env)
     const model = import.meta.env.OPENROUTER_MODEL || process.env.OPENROUTER_MODEL || "openai/gpt-oss-20b:free";
 
-    // basic env validation to give clearer errors
     const apiKey = import.meta.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       console.error("OPENROUTER_API_KEY missing");
@@ -57,7 +53,6 @@ export async function POST({ request }) {
       temperature: 0.6,
     });
 
-    // defensive: handle response shapes and missing content
     const content =
       res?.choices?.[0]?.message?.content ||
       res?.choices?.[0]?.text ||

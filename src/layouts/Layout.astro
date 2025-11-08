@@ -1,4 +1,6 @@
 ---
+export const prerender = false; 
+
 const { title = "TaVue – Lunettes sur mesure", description = "" } = Astro.props;
 import "../style/global.css";
 
@@ -7,6 +9,10 @@ import basketUrl from "/src/assets/basket.svg";
 import igUrl from "/src/assets/instagram.svg";
 import fbUrl from "/src/assets/facebook.svg";
 import twUrl from "/src/assets/twitter.svg";
+
+const user = Astro.locals.user; 
+const displayName =
+  (user?.name && String(user.name).trim()) || (user?.email ?? "Connecté");
 ---
 
 <html lang="fr">
@@ -16,52 +22,89 @@ import twUrl from "/src/assets/twitter.svg";
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
   </head>
+
   <body class="bg-white text-gray-900 antialiased">
     <header class="sticky top-0 z-50 bg-white shadow-sm backdrop-blur-md">
-  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-    <a href="/" class="flex items-center gap-2">
-      <img src={logoUrl.src} alt="TaVue" class="h-12 w-auto brightness-0" />
-    </a>
-
-    <ul class="hidden items-center gap-10 md:flex">
-      <li>
-        <a href="/configurateur"
-           class="text-[15px] font-medium text-gray-900 hover:text-black transition">
-          Personnalisation
+      <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+        <a href="/" class="flex items-center gap-2">
+          <img src={logoUrl.src} alt="TaVue" class="h-12 w-auto brightness-0" />
         </a>
-      </li>
-      <li>
-        <a href="/galerie"
-           class="text-[15px] font-medium text-gray-600 hover:text-black transition">
-          Galerie
-        </a>
-      </li>
-       <li>
-        <a href="/ia-generator"
-           class="text-[15px] font-medium text-gray-600 hover:text-black transition">
-          Générer avec l’IA
-        </a>
-      </li>
-    </ul>
 
-    <div class="flex items-center gap-2">
-      <a href="/configurateur"
-         class="rounded-md border border-gray-400 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-100 hover:text-black transition">
-        Connexion
-      </a>
-      <a href="/configurateur"
-         class="rounded-md bg-black px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-900 transition">
-        S’inscrire
-      </a>
-      <a href="/configurateur"
-         class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-gray-100 transition">
-        <img src={basketUrl.src} alt="Panier" class="h-5 w-5 brightness-0" />
-      </a>
-    </div>
-  </nav>
-</header>
+        <ul class="hidden items-center gap-10 md:flex">
+          <li>
+            <a href="/configurateur"
+              class="text-[15px] font-medium text-gray-900 hover:text-black transition">
+              Personnalisation
+            </a>
+          </li>
+          <li>
+            <a href="/galerie"
+              class="text-[15px] font-medium text-gray-600 hover:text-black transition">
+              Galerie
+            </a>
+          </li>
+          <li>
+            <a href="/ia-generator"
+              class="text-[15px] font-medium text-gray-600 hover:text-black transition">
+              Générer avec l’IA
+            </a>
+          </li>
+        </ul>
 
+        <div class="flex items-center gap-2">
+          {user ? (
+            <>
+              <!-- Pastille connecté -->
+              <div class="hidden sm:flex items-center gap-2 rounded-full border px-3 py-1.5">
+                <span class="inline-block h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
+                <span class="text-sm">
+                  Connecté&nbsp;: <strong class="font-semibold">{displayName}</strong>
+                </span>
+              </div>
 
+              <!-- Bouton déconnexion -->
+              <form
+                method="POST"
+                action={`/api/logout?redirectTo=${encodeURIComponent(Astro.url.pathname)}`}
+                class="m-0"
+              >
+                <button
+                  type="submit"
+                  class="rounded-md border border-gray-400 px-3 py-1.5 text-sm font-medium hover:bg-gray-50"
+                >
+                  Déconnexion
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <!-- Boutons Connexion / Inscription -->
+              <a
+                href="/login"
+                class="rounded-md border border-gray-400 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-100 hover:text-black transition"
+              >
+                Connexion
+              </a>
+
+              <a
+                href="/signup"
+                class="rounded-md bg-black px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-900 transition"
+              >
+                S’inscrire
+              </a>
+            </>
+          )}
+
+          <a
+            href="/configurateur"
+            class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-gray-100 transition"
+            aria-label="Panier"
+          >
+            <img src={basketUrl.src} alt="" class="h-5 w-5 brightness-0" />
+          </a>
+        </div>
+      </nav>
+    </header>
 
     <main>
       <slot />
@@ -74,11 +117,21 @@ import twUrl from "/src/assets/twitter.svg";
           <li><a href="#" class="hover:text-white">Contact</a></li>
           <li><a href="#" class="hover:text-white">CGV</a></li>
         </ul>
-        <p class="text-center text-sm">© 2025 TaVue — Lunettes sur mesure, fabriquées en France</p>
+
+        <p class="text-center text-sm">
+          © 2025 TaVue — Lunettes sur mesure, fabriquées en France
+        </p>
+
         <div class="flex justify-end gap-4">
-          <a href="#" aria-label="Instagram" class="hover:opacity-80"><img src={igUrl.src} alt="" class="h-5 w-5" /></a>
-          <a href="#" aria-label="Facebook" class="hover:opacity-80"><img src={fbUrl.src} alt="" class="h-5 w-5" /></a>
-          <a href="#" aria-label="Twitter" class="hover:opacity-80"><img src={twUrl.src} alt="" class="h-5 w-5" /></a>
+          <a href="#" aria-label="Instagram" class="hover:opacity-80">
+            <img src={igUrl.src} alt="" class="h-5 w-5" />
+          </a>
+          <a href="#" aria-label="Facebook" class="hover:opacity-80">
+            <img src={fbUrl.src} alt="" class="h-5 w-5" />
+          </a>
+          <a href="#" aria-label="Twitter" class="hover:opacity-80">
+            <img src={twUrl.src} alt="" class="h-5 w-5" />
+          </a>
         </div>
       </div>
     </footer>
