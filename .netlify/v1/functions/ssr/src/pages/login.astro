@@ -1,0 +1,99 @@
+---
+export const prerender = false;
+import Layout from "../layouts/Layout.astro";
+
+if (Astro.locals.user) {
+  return Astro.redirect("/galerie");
+}
+
+const redirectTo = Astro.url.searchParams.get("redirectTo") ?? "/galerie";
+---
+
+<Layout title="Connexion — TaVue">
+  <section class="min-h-[80vh] flex items-center px-4 py-10">
+    <div class="mx-auto w-full max-w-lg rounded-2xl border bg-white/95 p-6 sm:p-8 shadow-lg backdrop-blur">
+      <header class="mb-6 sm:mb-8 text-center">
+        <h1 class="text-2xl sm:text-3xl font-semibold">Connexion</h1>
+        <p class="mt-2 text-sm text-gray-600">Ravi de vous revoir sur TaVue.</p>
+      </header>
+
+      <form id="login-form" class="space-y-4 sm:space-y-5" novalidate>
+        <input type="hidden" name="redirectTo" value={redirectTo} />
+
+        <div class="rounded-xl border bg-gray-50/70 p-3 sm:p-4 transition focus-within:border-black/70">
+          <label for="email" class="block text-sm font-medium text-gray-800 mb-1.5">Email</label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            required
+            autocomplete="email"
+            class="w-full h-12 rounded-lg border border-gray-300 bg-white px-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-black/60"
+            placeholder="vous@exemple.fr"
+          />
+        </div>
+
+        <div class="rounded-xl border bg-gray-50/70 p-3 sm:p-4 transition focus-within:border-black/70">
+          <label for="password" class="block text-sm font-medium text-gray-800 mb-1.5">Mot de passe</label>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            class="w-full h-12 rounded-lg border border-gray-300 bg-white px-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-black/60"
+            placeholder="Votre mot de passe"
+          />
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full h-12 text-[15px] font-semibold">
+          Se connecter
+        </button>
+
+        <p class="text-center text-sm text-gray-600">
+          Pas de compte ?
+          <a class="link" href={`/signup?redirectTo=${encodeURIComponent(redirectTo)}`}>Créer un compte</a>
+        </p>
+
+        <p id="status" class="text-center text-sm text-red-600 min-h-[1rem]"></p>
+      </form>
+    </div>
+  </section>
+
+  <script is:inline>
+    const form = document.getElementById("login-form");
+    const statusEl = document.getElementById("status");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      statusEl.textContent = "Connexion...";
+      const fd = new FormData(form);
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            email: fd.get("email"),
+            password: fd.get("password"),
+          }),
+        });
+
+        if (res.ok) {
+          const redirectTo =
+            new URLSearchParams(location.search).get("redirectTo") ||
+            "/galerie";
+          statusEl.textContent = "✅ Connecté !";
+          window.location.href = redirectTo;
+        } else {
+          const data = await res.json().catch(() => ({}));
+          statusEl.textContent =
+            "❌ " + (data.error || "Email ou mot de passe invalide");
+        }
+      } catch (err) {
+        statusEl.textContent = "⚠️ Erreur de connexion au serveur";
+      }
+    });
+  </script>
+</Layout>

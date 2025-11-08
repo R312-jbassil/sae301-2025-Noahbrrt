@@ -1,0 +1,215 @@
+---
+export const prerender = false;
+import Layout from "../layouts/Layout.astro";
+
+if (Astro.locals.user) {
+  return Astro.redirect("/galerie");
+}
+const redirectTo = Astro.url.searchParams.get("redirectTo") || "/galerie";
+---
+
+<Layout title="Créer un compte — TaVue">
+  <section class="min-h-[80vh] flex items-center px-4 py-10">
+    <div class="mx-auto w-full max-w-lg rounded-2xl border bg-white/95 p-6 sm:p-8 shadow-lg backdrop-blur">
+      <header class="mb-6 sm:mb-8 text-center">
+        <h1 class="text-2xl sm:text-3xl font-semibold">Créer un compte</h1>
+        <p class="mt-2 text-sm text-gray-600">Rejoignez TaVue en quelques secondes.</p>
+      </header>
+
+      <form id="signup-form" class="space-y-4 sm:space-y-5" novalidate>
+        <input type="hidden" name="redirectTo" value={redirectTo} />
+
+        <div class="rounded-xl border bg-gray-50/70 p-3 sm:p-4 transition focus-within:border-black/70">
+          <label for="name" class="block text-sm font-medium text-gray-800 mb-1.5">Nom (optionnel)</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            autocomplete="name"
+            class="w-full h-12 rounded-lg border border-gray-300 bg-white px-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-black/60"
+            placeholder="Ex. Marie Dupont"
+          />
+          <p id="err-name" class="mt-1 text-xs text-red-600"></p>
+        </div>
+
+        <!-- Email -->
+        <div class="rounded-xl border bg-gray-50/70 p-3 sm:p-4 transition focus-within:border-black/70">
+          <label for="email" class="block text-sm font-medium text-gray-800 mb-1.5">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            class="w-full h-12 rounded-lg border border-gray-300 bg-white px-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-black/60"
+            placeholder="vous@exemple.fr"
+          />
+          <p id="err-email" class="mt-1 text-xs text-red-600"></p>
+        </div>
+
+        <div class="rounded-xl border bg-gray-50/70 p-3 sm:p-4 transition focus-within:border-black/70">
+          <div class="flex items-center justify-between">
+            <label for="password" class="block text-sm font-medium text-gray-800 mb-1.5">Mot de passe</label>
+            <span id="hint-len" class="text-[11px] text-gray-500">6 caractères minimum</span>
+          </div>
+          <div class="relative">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              minlength="6"
+              autocomplete="new-password"
+              class="w-full h-12 rounded-lg border border-gray-300 bg-white pr-12 px-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-black/60"
+              placeholder="Au moins 6 caractères"
+            />
+            <button type="button" id="toggle-pass"
+              class="absolute inset-y-0 right-2 my-auto px-2 text-sm text-gray-600 hover:text-black">
+              Afficher
+            </button>
+          </div>
+          <p id="err-password" class="mt-1 text-xs text-red-600"></p>
+        </div>
+
+        <!-- Confirmation -->
+        <div class="rounded-xl border bg-gray-50/70 p-3 sm:p-4 transition focus-within:border-black/70">
+          <label for="passwordConfirm" class="block text-sm font-medium text-gray-800 mb-1.5">Confirmer le mot de passe</label>
+          <div class="relative">
+            <input
+              id="passwordConfirm"
+              name="passwordConfirm"
+              type="password"
+              required
+              minlength="6"
+              autocomplete="new-password"
+              class="w-full h-12 rounded-lg border border-gray-300 bg-white pr-12 px-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-black/60"
+              placeholder="Répétez le mot de passe"
+            />
+            <button type="button" id="toggle-pass2"
+              class="absolute inset-y-0 right-2 my-auto px-2 text-sm text-gray-600 hover:text-black">
+              Afficher
+            </button>
+          </div>
+          <p id="err-passwordConfirm" class="mt-1 text-xs text-red-600"></p>
+        </div>
+
+        <!-- CTA -->
+        <button id="btn-submit" type="submit" class="btn btn-primary w-full h-12 text-[15px] font-semibold">
+          <span class="inline-flex items-center gap-2">
+            <svg id="spinner" class="hidden animate-spin h-4 w-4" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"/>
+            </svg>
+            S’inscrire
+          </span>
+        </button>
+
+        <p class="text-center text-sm text-gray-600">
+          Déjà un compte ?
+          <a class="link" href={`/login?redirectTo=${encodeURIComponent(redirectTo)}`}>Se connecter</a>
+        </p>
+
+        <p id="status" class="text-center text-sm text-red-600 min-h-[1rem]"></p>
+      </form>
+    </div>
+  </section>
+
+  <script is:inline>
+    const form = document.getElementById("signup-form");
+    const statusEl = document.getElementById("status");
+    const btn = document.getElementById("btn-submit");
+    const spinner = document.getElementById("spinner");
+
+    const email = document.getElementById("email");
+    const pass = document.getElementById("password");
+    const pass2 = document.getElementById("passwordConfirm");
+
+    const errEmail = document.getElementById("err-email");
+    const errPass = document.getElementById("err-password");
+    const errPass2 = document.getElementById("err-passwordConfirm");
+
+    document.getElementById("toggle-pass")?.addEventListener("click", () => {
+      const t = pass.type === "password" ? "text" : "password";
+      pass.type = t;
+      document.getElementById("toggle-pass").textContent = t === "password" ? "Afficher" : "Masquer";
+    });
+    document.getElementById("toggle-pass2")?.addEventListener("click", () => {
+      const t = pass2.type === "password" ? "text" : "password";
+      pass2.type = t;
+      document.getElementById("toggle-pass2").textContent = t === "password" ? "Afficher" : "Masquer";
+    });
+
+    function validate() {
+      let ok = true;
+      errEmail.textContent = "";
+      errPass.textContent = "";
+      errPass2.textContent = "";
+
+      if (!email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+        errEmail.textContent = "Entrez un email valide.";
+        ok = false;
+      }
+      if (!pass.value || pass.value.length < 6) {
+        errPass.textContent = "Au moins 6 caractères.";
+        ok = false;
+      }
+      if (pass2.value !== pass.value) {
+        errPass2.textContent = "Les mots de passe ne correspondent pas.";
+        ok = false;
+      }
+      return ok;
+    }
+
+    pass2.addEventListener("input", () => {
+      if (pass2.value && pass.value && pass2.value !== pass.value) {
+        errPass2.textContent = "Les mots de passe ne correspondent pas.";
+      } else {
+        errPass2.textContent = "";
+      }
+    });
+
+    form?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      statusEl.textContent = "";
+
+      if (!validate()) {
+        const firstErr = document.querySelector(".text-red-600:not(:empty)");
+        firstErr?.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
+      btn.disabled = true;
+      spinner.classList.remove("hidden");
+
+      const fd = new FormData(form);
+      const payload = {
+        name: (fd.get("name") || "").toString(),
+        email: (fd.get("email") || "").toString(),
+        password: (fd.get("password") || "").toString(),
+        passwordConfirm: (fd.get("passwordConfirm") || "").toString(),
+      };
+
+      try {
+        const res = await fetch("/api/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+
+        if (res.ok) {
+          const redirectTo = (fd.get("redirectTo") || "/galerie").toString();
+          window.location.href = redirectTo;
+        } else {
+          const r = await res.json().catch(() => ({}));
+          statusEl.textContent = r?.error || "Erreur d’inscription.";
+        }
+      } catch {
+        statusEl.textContent = "Impossible de contacter le serveur.";
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add("hidden");
+      }
+    });
+  </script>
+</Layout>
