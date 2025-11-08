@@ -2,7 +2,7 @@ export const prerender = false;
 
 import { getPB } from "../../utils/pb.js";
 
-export async function POST({ request, cookies, url }) {
+export async function POST({ request }) {
   try {
     const { email, password, passwordConfirm, name } = await request.json();
 
@@ -19,7 +19,7 @@ export async function POST({ request, cookies, url }) {
 
     const pb = await getPB();
 
-    const record = await pb.collection("users").create({
+    await pb.collection("users").create({
       email,
       password,
       passwordConfirm,
@@ -29,14 +29,19 @@ export async function POST({ request, cookies, url }) {
 
     const authData = await pb.collection("users").authWithPassword(email, password);
 
-    cookies.set("pb_auth", pb.authStore.exportToCookie(), {
-      path: "/",
+    const setCookie = pb.authStore.exportToCookie({
       httpOnly: true,
-      sameSite: "strict",
+      secure: import.meta.env.PROD,
+      sameSite: "Lax",
+      path: "/",
     });
 
     return new Response(JSON.stringify({ ok: true, user: authData.record }), {
-      status: 200, headers: { "Content-Type": "application/json" },
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": setCookie,
+      },
     });
   } catch (err) {
     console.error("[/api/signup] ERROR:", err);
